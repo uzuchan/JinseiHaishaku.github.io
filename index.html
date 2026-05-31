@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人生拝借 — a life borrowed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #13110f;
+  --bg-soft: #1c1916;
+  --bg-card: #1a1714;
+  --ink: #ece3cc;
+  --ink-dim: #a89a82;
+  --ink-faint: #6b6356;
+  --accent: #c9a961;
+  --accent-deep: #8c6f3a;
+  --crimson: #a8412e;
+  --rule: rgba(236, 227, 204, 0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Shippori Mincho', 'Yu Mincho', '游明朝', serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* paper grain */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.85 0 0 0 0 0.75 0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  opacity: 0.07;
+  pointer-events: none;
+  z-index: 1000;
+  mix-blend-mode: overlay;
+}
+
+/* soft vignette */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 999;
+}
+
+.app {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 4rem 2rem 6rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ====== TITLE SCREEN ====== */
+.title-screen {
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 2.5rem;
+  animation: slowFade 1.6s ease forwards;
+}
+
+.title-mark {
+  font-size: clamp(3rem, 9vw, 5.5rem);
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  color: var(--ink);
+  position: relative;
+  padding-right: 0.35em;
+  line-height: 1;
+}
+
+.title-mark::after {
+  content: '';
+  position: absolute;
+  bottom: -1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3.5rem;
+  height: 1px;
+  background: var(--accent);
+}
+
+.title-sub {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.18em;
+}
+
+.title-desc {
+  max-width: 30ch;
+  line-height: 2.3;
+  font-size: 0.95rem;
+  color: var(--ink-dim);
+  letter-spacing: 0.05em;
+  margin-top: 1rem;
+}
+
+.btn-primary {
+  font-family: 'Shippori Mincho', serif;
+  background: transparent;
+  border: 1px solid var(--accent-deep);
+  color: var(--accent);
+  padding: 1.1rem 3rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.4em;
+  cursor: pointer;
+  transition: all 0.5s cubic-bezier(.2,.7,.3,1);
+  margin-top: 1.5rem;
+  position: relative;
+  padding-right: calc(3rem - 0.4em);
+}
+
+.btn-primary:hover {
+  background: var(--accent);
+  color: var(--bg);
+  letter-spacing: 0.5em;
+  padding-right: calc(3rem - 0.5em);
+}
+
+.btn-subtle {
+  font-family: 'Shippori Mincho', serif;
+  background: transparent;
+  border: none;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  padding: 0.5rem 1rem;
+}
+
+.btn-subtle:hover { color: var(--ink-dim); }
+
+.title-footer {
+  margin-top: 2rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+}
+
+/* ====== LOADING / TRANSITION ====== */
+.loading {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.loading-text {
+  font-family: 'Shippori Mincho', serif;
+  color: var(--ink-dim);
+  letter-spacing: 0.3em;
+  font-size: 1rem;
+  animation: breathePulse 2.4s ease infinite;
+}
+
+@keyframes breathePulse {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.85; }
+}
+
+@keyframes slowFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ====== SCENE ====== */
+.scene {
+  animation: sceneFade 1.4s ease forwards;
+}
+
+@keyframes sceneFade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.life-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+  padding-bottom: 2rem;
+  position: relative;
+}
+
+.life-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2rem;
+  height: 1px;
+  background: var(--accent-deep);
+}
+
+.life-name {
+  font-size: clamp(1.6rem, 4vw, 2rem);
+  letter-spacing: 0.25em;
+  margin-bottom: 0.8rem;
+  font-weight: 500;
+  padding-right: 0.25em;
+}
+
+.life-meta {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: var(--ink-dim);
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+}
+
+.prose {
+  font-size: 1.02rem;
+  line-height: 2.3;
+  letter-spacing: 0.05em;
+  margin-bottom: 3rem;
+  color: var(--ink);
+}
+
+.prose p {
+  margin-bottom: 1.2rem;
+  text-indent: 1em;
+  opacity: 0;
+  animation: revealText 1.1s ease forwards;
+}
+
+.prose p:nth-child(1) { animation-delay: 0.3s; }
+.prose p:nth-child(2) { animation-delay: 1.0s; }
+.prose p:nth-child(3) { animation-delay: 1.7s; }
+.prose p:nth-child(4) { animation-delay: 2.4s; }
+
+@keyframes revealText {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.choice-prompt {
+  font-style: italic;
+  color: var(--ink-dim);
+  text-align: center;
+  margin: 2rem 0 1.5rem;
+  font-size: 0.92rem;
+  letter-spacing: 0.1em;
+  font-family: 'Cormorant Garamond', serif;
+  opacity: 0;
+  animation: revealText 1s ease 1.6s forwards;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  opacity: 0;
+  animation: revealText 1s ease 2.0s forwards;
+}
+
+.choice {
+  font-family: 'Shippori Mincho', serif;
+  background: transparent;
+  border: 1px solid rgba(201, 169, 97, 0.18);
+  color: var(--ink);
+  padding: 1.2rem 1.8rem;
+  font-size: 0.98rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.35s cubic-bezier(.2,.7,.3,1);
+  line-height: 1.8;
+  position: relative;
+  font-weight: 400;
+}
+
+.choice::before {
+  content: '─';
+  margin-right: 1rem;
+  color: var(--accent-deep);
+  transition: color 0.3s ease, margin-right 0.3s ease;
+}
+
+.choice:hover {
+  border-color: var(--accent);
+  background: rgba(201, 169, 97, 0.04);
+}
+
+.choice:hover::before {
+  color: var(--accent);
+  margin-right: 1.4rem;
+}
+
+.scene-progress {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.8rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: var(--ink-faint);
+  font-size: 0.8rem;
+  letter-spacing: 0.15em;
+  z-index: 100;
+}
+
+/* ====== ENDING ====== */
+.ending .prose { text-indent: 0; }
+.ending .prose p { text-indent: 0; }
+
+.epitaph {
+  border: 1px solid var(--accent-deep);
+  padding: 3rem 2.5rem;
+  margin: 4rem 0 2rem;
+  position: relative;
+  background: rgba(201, 169, 97, 0.025);
+  opacity: 0;
+  animation: revealText 1.4s ease 3.5s forwards;
+}
+
+.epitaph::before, .epitaph::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--accent);
+}
+
+.epitaph::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.epitaph::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+.epitaph-label {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  color: var(--accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.35em;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-right: 0.35em;
+}
+
+.epitaph-text {
+  font-size: 1.1rem;
+  line-height: 2.2;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: var(--ink);
+}
+
+.seal {
+  display: inline-block;
+  color: var(--crimson);
+  font-family: 'Shippori Mincho', serif;
+  font-size: 0.7rem;
+  border: 1.5px solid var(--crimson);
+  padding: 0.3rem 0.45rem;
+  letter-spacing: 0.05em;
+  margin: 1.5rem auto 0;
+  font-weight: 700;
+  writing-mode: vertical-rl;
+  display: block;
+  width: fit-content;
+  background: rgba(168, 65, 46, 0.05);
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 3.5rem;
+  flex-wrap: wrap;
+  opacity: 0;
+  animation: revealText 1s ease 4.2s forwards;
+}
+
+.tally {
+  margin-top: 2rem;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  letter-spacing: 0.12em;
+  text-align: center;
+  opacity: 0;
+  animation: revealText 1s ease 4.5s forwards;
+}
+
+@media (max-width: 640px) {
+  .app { padding: 2.5rem 1.5rem 4rem; }
+  .scene-progress { top: 1rem; right: 1rem; font-size: 0.7rem; }
+  .prose { font-size: 0.98rem; line-height: 2.1; }
+  .epitaph { padding: 2rem 1.5rem; }
+  .epitaph-text { font-size: 1rem; letter-spacing: 0.06em; }
+  .choice { padding: 1.1rem 1.4rem; font-size: 0.93rem; }
+  .title-mark { letter-spacing: 0.25em; padding-right: 0.25em; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+// ============================================================
+// 八つの人生
+// ============================================================
+const LIVES = [
+  {
+    name: '桶職人',
+    meta: 'a cooper, Edo, 1781',
+    start: 'a',
+    nodes: {
+      a: { intro: true, next: 'a2',
+        text: ['火の見櫓の鐘が四つを告げる頃，お前は薄暗い土間で目を覚ます．九つの夏．父の手は節くれだち，桧の匂いが体じゅうに染みついている．',
+               '土間には削りかけの木が転がり，鉋屑が朝の光に薄く舞っている．父は何も言わず，ただ顎で「来い」と示した．'],
+        cont: '父のそばへ行く' },
+
+      a2: { intro: true, next: 'b_choice',
+        text: ['父は一本の木を差し出した．「触ってみろ」とだけ言う．',
+               'お前は恐る恐る木肌に手を這わせる．冷たく，硬く，けれどどこか，生きていた頃の温もりを残しているようにも思えた．',
+               '「木は，死んでからのほうが長く生きる」と父は呟いた．意味は，まだ分からなかった．'],
+        cont: '鉋を受け取る' },
+
+      b_choice: {
+        text: ['父が初めて，お前に鉋を握ることを許した日のこと．目の前には二本の木．',
+               '一本はまっすぐな良材．もう一本は節があり，わずかに曲がっている．「どちらでもよい．好きなほうを削れ」と父は言った．'],
+        prompt: 'お前は，',
+        choices: [
+          { text: 'まっすぐな木目に，言われた通り鉋を当てる．', to: 'b_sei' },
+          { text: '節のある曲がった木が気になり，そちらを手に取る．', to: 'b_kyoku' }
+        ]},
+
+      // ───── 進路1：正道 ─────
+      b_sei: { intro: true, next: 'b_sei2',
+        text: ['まっすぐな木は素直だった．鉋は滑らかに走り，薄い屑が長く長く伸びていく．',
+               '父は黙って頷いた．それが，父の最大の賛辞だと，後になって知る．'],
+        cont: '年月が流れる' },
+      b_sei2: {
+        text: ['年月が過ぎ，お前の桶は「水を一滴も漏らさぬ」と評判になった．問屋が列をなす．父はもう鉋を握れぬ身となり，土間の隅で日がな一日，お前の手元を見ている．',
+               'ある日，注文がふたつ重なった．豪商の祝言の桶と，貧しい寡婦の風呂桶．納期は同じ．手は二本しかない．'],
+        prompt: 'お前はまず，',
+        choices: [
+          { text: '豪商の桶から仕上げる．銭が暖簾を守る．', to: 'c_shoten' },
+          { text: '寡婦の桶を先に．冬が迫っているゆえ．', to: 'c_kafu' }
+        ]},
+
+      // ───── 進路2：曲がった木 ─────
+      b_kyoku: { intro: true, next: 'b_kyoku2',
+        text: ['曲がった木は手強かった．鉋は跳ね，屑は途切れ，何度も刃が食い込んで止まる．',
+               '父は止めなかった．ただ一度だけ，「木の言うことを聞け．お前の言うことを，木に聞かせるな」と言った．'],
+        cont: '父を看取る' },
+      b_kyoku2: {
+        text: ['曲がった木を活かす桶は手間がかかり，銭にならぬ．父は何も遺さず逝った．最期の夜，「お前は，遠回りをする男だ」と，どこか嬉しそうに言って．',
+               'ある日，お前の歪な桶を見た数寄者が「これは茶席の趣がある」と買い求めた．名が，少しだけ売れた．'],
+        prompt: 'お前は，',
+        choices: [
+          { text: '数寄者の好みに合わせ，「見せる桶」を作りはじめる．', to: 'c_miseru' },
+          { text: '評判には乗らず，これまで通り市井の桶を作りつづける．', to: 'c_shisei' }
+        ]},
+
+      // ───── 第三幕：弟子（進路ごとに分かれる） ─────
+      c_shoten: { intro: true, next: 'deshi_shoten',
+        text: ['暖簾は栄えた．だが豪商に媚びた仕事だと陰口も聞こえる．寡婦の桶は，間に合わなかった．その冬，寡婦は風邪をこじらせたと，後で人づてに聞いた．',
+               'お前は何も言わず，ただ次の桶を削った．削るほかに，どうすればよいか分からなかった．'],
+        cont: '歳月が過ぎる' },
+      c_kafu: { intro: true, next: 'deshi_kafu',
+        text: ['豪商は怒り，注文を引き上げた．暮らしは細った．だが寡婦は毎年，米を一握り届けてくる．「あの桶のおかげで，冬を越せました」と，何度も頭を下げて．',
+               '銭は減った．けれど土間の桧の匂いは，前より澄んで感じられた．'],
+        cont: '歳月が過ぎる' },
+      c_miseru: { intro: true, next: 'deshi_miseru',
+        text: ['「見せる桶」は高値で売れ，お前の名は江戸に知れた．床の間を飾る桶，茶席に置かれる桶．水を入れぬ桶ばかりが増えていく．',
+               'ある夜，ふと自分の手を見た．節くれだった，父と同じ手．だがこの手は，もう何を作っているのだったか．'],
+        cont: '歳月が過ぎる' },
+      c_shisei: { intro: true, next: 'deshi_shisei',
+        text: ['名は廃れたが，長屋の者はみなお前の桶を使った．曲がった木の桶は，不思議と手に馴染むと言う．銭は乏しいが，使う者の顔が見える暮らしだった．',
+               '父の言葉を，ようやく少し分かりかけていた．木の言うことを，聞く．それだけのことが，一生かかっても難しい．'],
+        cont: '歳月が過ぎる' },
+
+      // ── 弟子の問いは共通だが，選択肢はそれまでの進路に沿う ──
+      deshi_shoten: { intro: true, next: 'dq_shoten',
+        text: ['五十を越えた頃，不器用な弟子がひとり来た．手つきは拙いが，目だけは澄んでいる．九つの夏のお前を見るようだった．',
+               '弟子は毎朝，誰より早く土間に来て鉋を研ぎ，お前の手元を食い入るように見ていた．'],
+        cont: '弟子と向き合う' },
+      dq_shoten: {
+        text: ['ある夜，弟子が手を止めて囁いた．「親方，銭のために桶を作るのは，正しいことなので」と．',
+               '声が震えていた．豪商に頭を下げつづけたお前の背中を，弟子はずっと見ていたのだ．'],
+        prompt: 'お前は応える．',
+        choices: [
+          { text: '「銭を稼げぬ職人は，弟子も家族も守れぬ」', to: 'pre_jitsu' },
+          { text: '「……分からぬ．だが，迷うても木は削れる」', to: 'pre_michi' }
+        ]},
+
+      deshi_kafu: { intro: true, next: 'dq_kafu',
+        text: ['五十を越えた頃，不器用な弟子がひとり来た．手つきは拙いが，目だけは澄んでいる．九つの夏のお前を見るようだった．',
+               '弟子は，お前が銭にならぬ桶ばかり作るのを，不思議そうに見ていた．'],
+        cont: '弟子と向き合う' },
+      dq_kafu: {
+        text: ['ある夜，弟子が手を止めて囁いた．「親方，こんなに損ばかりして，悔いはないので」と．',
+               '声が震えていた．米を届けに来る寡婦の姿を，弟子も幾度か見ていた．'],
+        prompt: 'お前は応える．',
+        choices: [
+          { text: '「桶は，凍える者のためにある．それで足る」', to: 'pre_jou' },
+          { text: '「損も得も，木は知らぬ．俺も，まだ知らぬ」', to: 'pre_michi' }
+        ]},
+
+      deshi_miseru: { intro: true, next: 'dq_miseru',
+        text: ['五十を越えた頃，不器用な弟子がひとり来た．手つきは拙いが，目だけは澄んでいる．九つの夏のお前を見るようだった．',
+               '弟子は，床の間に飾られたお前の桶を，ためつすがめつ眺めていた．'],
+        cont: '弟子と向き合う' },
+      dq_miseru: {
+        text: ['ある夜，弟子が手を止めて囁いた．「親方，この桶は，何のために作るので」と．',
+               '声が震えていた．水を入れられぬ桶ばかりを，弟子は怪訝に思っていたのだ．'],
+        prompt: 'お前は応える．',
+        choices: [
+          { text: '「人の目を喜ばせる．それも，一つの道だ」', to: 'pre_na' },
+          { text: '——答えに詰まる．その夜，久々に水を入れる桶を削った．', to: 'pre_michi' }
+        ]},
+
+      deshi_shisei: { intro: true, next: 'dq_shisei',
+        text: ['五十を越えた頃，不器用な弟子がひとり来た．手つきは拙いが，目だけは澄んでいる．九つの夏のお前を見るようだった．',
+               '弟子は毎朝，誰より早く土間に来て，お前の鉋を研いだ．'],
+        cont: '弟子と向き合う' },
+      dq_shisei: {
+        text: ['ある夜，弟子が手を止めて囁いた．「親方，もっと上を，名を目指さぬので」と．',
+               '声が震えていた．お前の桶が市井で愛されてなお，名は廃れたままなのを，弟子は歯がゆく思っていた．'],
+        prompt: 'お前は応える．',
+        choices: [
+          { text: '「上などない．水が漏れねば，それで足る」', to: 'pre_jitsu' },
+          { text: '「曲がった木にも，使い道がある．それだけだ」', to: 'pre_jou' }
+        ]},
+
+      // ───── 終幕前の幕間（進路で文言が変わる） ─────
+      pre_jitsu: { intro: true, next: 'end_jitsu',
+        text: ['弟子は頷き，黙々と腕を上げた．やがて独り立ちし，立派な桶を作る職人になった．水を一滴も漏らさぬ桶を．',
+               'お前の教えは，間違ってはいなかった．ただ，正しさが少し，寂しかった．'],
+        cont: '老いる' },
+      pre_jou: { intro: true, next: 'end_jou',
+        text: ['弟子は涙をこぼし，それから笑った．「では，私も凍える者のために削ります」と．',
+               'その言葉を聞けただけで，貧しかった一生に，釣りがきた気がした．'],
+        cont: '老いる' },
+      pre_na: { intro: true, next: 'end_na',
+        text: ['弟子はお前より器用に，お前より美しい桶を作るようになった．評判も継いだ．',
+               'だが弟子の桶もまた，水を入れられることはなかった．お前は，何かを手渡し損ねた気がしてならない．'],
+        cont: '老いる' },
+      pre_michi: { intro: true, next: 'end_michi',
+        text: ['弟子は不思議そうな顔をして，それから安心したように笑った．「親方でも分からぬのですか」と．',
+               '「ああ，分からぬ」とお前は答えた．「だから，まだ削れる」'],
+        cont: '老いる' },
+
+      // ───── エンディング（4通り） ─────
+      end_jitsu: { ending: true,
+        text: ['手が震える．最後の桶を作っている．六十を越えた身では，もう箍を打ち込む力もない．',
+               '孫が傍に立つ．「じいさま，まだ水は漏れぬか」と問う．お前は，漏れぬ，と答える．それだけが，誇りだった．それだけで，足りるのだと，今は思える．'],
+        epitaph: '木目に従い，水を漏らさぬ桶を作りつづけた者，ここに眠る．' },
+      end_jou: { ending: true,
+        text: ['手が震える．最後の桶は，名も知らぬ誰かの風呂桶だ．銭にはならぬ．',
+               '桧の匂い．凍える冬に，誰かがこの桶で湯を浴びる．湯気の向こうで，誰かが温まる．それを思うと，震える手も，少し温かい．'],
+        epitaph: '曲がった木にも，使い道があると信じつづけた者，ここに眠る．' },
+      end_na: { ending: true,
+        text: ['手が震える．床の間には，お前の名を冠した桶が幾つも飾られている．誰も水を入れぬ桶だ．',
+               'ふと，九つの夏に握った最初の鉋を思い出す．あの長く伸びた屑を．あれは，何のためだったか．もう，思い出せぬ．'],
+        epitaph: '名を遺し，水を忘れた桶を遺した者，ここに眠る．' },
+      end_michi: { ending: true,
+        text: ['手が震える．最後の桶を削りながら，お前は未だ「桶とは何か」を知らぬことに気づく．六十年，削りつづけて，なお．',
+               '弟子が傍にいる．「親方，分かりましたか」と問う．「いや」と答え，お前は笑った．削る手だけは，最期まで，止まらなかった．'],
+        epitaph: '答えを得ぬまま，ただ削りつづけた者，ここに眠る．' }
+    }
+  },
+
+  {
+    name: '女房',
+    meta: 'a lady-in-waiting, Heian-kyō, 1003',
+    start: 'a',
+    nodes: {
+      a: { intro: true, next: 'a2',
+        text: ['几帳の影．焚きしめた香の匂い．十四の春，初めて宮に上がった日のこと．',
+               '長い廊を渡るあいだ，あなたの衣擦れの音だけが響いた．御簾の向こうから漏れる琴の音は，まだ知らぬ人の手によるもの．美しく，どこか哀しい調べだった．'],
+        cont: '姫君のもとへ参る' },
+
+      a2: { intro: true, next: 'b_choice',
+        text: ['仕えるのは，まだ若い姫君だった．あなたより二つ三つ年上なだけの，けれど深い目をした方．',
+               '「そなたの字は美しいと聞いた」と姫君は言った．「ならば，文を頼みたい」',
+               'その手には，一通の文．気高い香が焚きしめてある．'],
+        cont: '文を受け取る' },
+
+      b_choice: {
+        text: ['「これを，あの方に」と姫君は言った．送り主の名も，宛先の意味も，あなたには知らされていない．',
+               'ただ，姫君の頬が，わずかに上気していた．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '役目を全うし，中を見ずに黙って届ける．', to: 'b_yaku' },
+          { text: '一読してから届ける．姫君の身を案じて．', to: 'b_an' }
+        ]},
+
+      // ───── 進路1：役目 ─────
+      b_yaku: { intro: true, next: 'b_yaku2',
+        text: ['あなたは文を見もせず届けた．姫君は何も言わなかったが，その後しばらく，あなたを最も近くに置くようになった．',
+               '口の堅さは，宮中で密やかに評判となった．「あの者には何を預けてもよい」と．'],
+        cont: '夏が来る' },
+      b_yaku2: {
+        text: ['夏，宮中の歌合せが催された．あなた自身が請われて詠んだ一首が，思いがけず皆の心を打った．',
+               'その夜，左大臣の御曹司が，几帳の陰から密かに声をかけてきた．宮中で並ぶ者なき貴公子だった．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '雅やかに，しかし応じる．人の世も悪くない．', to: 'c_ouji' },
+          { text: '「私には役目がございますゆえ」と退く．', to: 'c_shiri' }
+        ]},
+
+      // ───── 進路2：案じる ─────
+      b_an: { intro: true, next: 'b_an2',
+        text: ['文には，許されぬ相手への想いが綴られていた．届ければ，姫君の家を揺るがしかねぬ言葉だった．',
+               'あなたは一晩，文を胸に抱いて迷った．届けるのが役目．けれど，届けてよいものか．'],
+        cont: '翌朝，姫君に申し上げる' },
+      b_an2: {
+        text: ['あなたは届けるのを一日だけ遅らせ，言葉を選んで姫君に翻意を促した．姫君は泣いた．それから，深く頷いた．',
+               'その想いは，家を滅ぼしかねぬものだったのだ．以来あなたは姫君の右腕となり，幾年もの歳月を共にした．'],
+        prompt: 'やがて姫君が重い病に臥した．あなたは，',
+        choices: [
+          { text: '昼夜を問わず看病し，宮中の役目を後回しにする．', to: 'c_kanbyou' },
+          { text: '名医と薬を方々に求め，駆けずり回る．', to: 'c_kusuri' }
+        ]},
+
+      // ───── 第三幕：それぞれの収束 ─────
+      c_ouji: { intro: true, next: 'wakare',
+        text: ['御曹司との睦まじい日々．歌を交わし，月を眺めた幾夜．けれど彼には正妻があり，あなたは日陰の身だった．',
+               '華やかさの裏で，あなたは少しずつ，自分が誰なのか分からなくなっていった．'],
+        cont: '別れのとき' },
+      c_shiri: { intro: true, next: 'wakare',
+        text: ['退いたあなたを，宮中の女たちは「堅物」と陰で笑った．けれど姫君だけは，あなたを誰より頼った．',
+               '「そなたは，私の半身のようなものだ」と姫君は言った．その言葉だけで，十分だった．'],
+        cont: '別れのとき' },
+      c_kanbyou: { intro: true, next: 'wakare',
+        text: ['あなたは寝食を忘れて看病した．湯を運び，髪を梳き，眠れぬ夜は手を握りつづけた．',
+               '姫君の額に浮かぶ汗を拭うたび，あなたは祈った．代われるものなら，と．'],
+        cont: '別れのとき' },
+      c_kusuri: { intro: true, next: 'wakare',
+        text: ['あなたは方々を駆け回り，唐渡りの薬を，名高い祈祷師を，あらゆる伝手を頼って求めた．',
+               'その甲斐あって，姫君は一年だけ永らえた．そしてその一年で，姫君は生涯の歌を詠み切った．'],
+        cont: '別れのとき' },
+
+      wakare: { intro: true, next: 'wakare_choice',
+        text: ['秋の暮れ，姫君は露のごとく逝った．最期に「そなたがいて，よかった」と，微かに微笑んで．',
+               '宮を退いたあなたの手元には，姫君の遺した文と歌の束だけが残された．几帳も，香も，琴の音も，もうない．'],
+        cont: '残されたものを見つめる' },
+      wakare_choice: {
+        text: ['長い廊を，今度は一人で渡る．衣擦れの音だけが，あの春と同じように響いた．',
+               '残りの生を，どう生きるか．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '尼となり，過ぎた日々を静かに弔う．', to: 'pre_miyabi' },
+          { text: '里に下り，姪を育てる．人の世を生きる．', to: 'pre_jou' },
+          { text: '姫君の歌を編み，後世に遺す．', to: 'pre_uta' }
+        ]},
+
+      pre_miyabi: { intro: true, next: 'end_miyabi',
+        text: ['あなたは髪を下ろし，山深い庵に入った．俗世の華やぎも，恋も，名も，すべて置いて．',
+               '読経の声だけが，日々を満たした．それは，思いのほか安らかな時間だった．'],
+        cont: '老いる' },
+      pre_jou: { intro: true, next: 'end_jou',
+        text: ['あなたは里に下り，幼くして親を亡くした姪を引き取った．宮中のことは，誰も知らぬ土地で．',
+               '幼子は泣き，笑い，育っていった．歌よりも，香よりも，その手の温もりが確かだった．'],
+        cont: '老いる' },
+      pre_uta: { intro: true, next: 'end_uta',
+        text: ['あなたは姫君の歌を一首ずつ清書し，墨が乾くたびに泣いた．姫君の声が，文字の向こうから聞こえる気がした．',
+               '編み終えた歌集を，あなたは信頼できる公達にそっと託した．「この方の歌を，どうか後の世に」と．'],
+        cont: '老いる' },
+
+      end_miyabi: { ending: true,
+        text: ['庵の縁先．露が降りている．紙はもう墨を弾かぬほど古びた．',
+               '雅やかであった日々も，今は遠い香のよう．覚えていることが，もう少しある．少しだけだ．それで，よい．'],
+        epitaph: '都の雅をその身に宿し，露のごとく去った者，ここに眠る．' },
+      end_jou: { ending: true,
+        text: ['里の縁先．姪の子が膝にのぼってくる．宮中のことは，もう誰も知らぬ．',
+               'けれど，幼子の小さな手を握るとき，あなたは確かに生きていると感じる．琴の音よりも，温かいものがある．'],
+        epitaph: '人の世の情に寄り添い，土に還った者，ここに眠る．' },
+      end_uta: { ending: true,
+        text: ['あなたが遺した歌の束は，幾百年を超えて読み継がれた．姫君の名は残り，あなたの名は，余白に消えた．',
+               '老いた縁先で，あなたは知らぬ．いつか見知らぬ誰かが，その一首に涙し，千年の時を越えて姫君と——そしてあなたと，心を通わせることを．'],
+        epitaph: '言葉を世に遺し，自らの名を時に預けた者，ここに眠る．' }
+    }
+  },
+
+  {
+    name: '灯台守',
+    meta: 'a lighthouse keeper, Iceland, 1962',
+    start: 'a',
+    nodes: {
+      a: { intro: true, next: 'a2',
+        text: ['風の音．石の家．あなたは四十八歳．妻はもういない．三年前の冬，海ではなく，静かな病が連れていった．',
+               '灯台の螺旋階段を上りながら，あなたは年に一度の発作的な咳をする．十二月，この緯度では陽は三時間しか昇らぬ．残りの二十一時間を，あなたは灯と共に過ごす．'],
+        cont: '灯を確かめる' },
+
+      a2: { intro: true, next: 'b_choice',
+        text: ['レンズを磨き，油を足し，回転する光が海の闇を一定の間隔で薙いでいくのを確かめる．それが一日の始まりであり，終わりだった．',
+               'この単調さを，妻は「祈りのようね」と言って笑った．今となっては，それが一番の褒め言葉だったと分かる．',
+               'その夜，無線が雑音の中に途切れがちな声を拾った．南の海，漁船が一艘，霧に巻かれている．'],
+        cont: '窓辺に立つ' },
+
+      b_choice: {
+        text: ['無線はやがて完全に途切れた．位置も，状況も分からぬ．霧は厚く，波は高い．',
+               'あなたにできることは，多くない．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '灯を最も強くし，朝まで一睡もせず見張る．', to: 'b_mihari' },
+          { text: '灯は機械に任せ，南の岸を歩いて探しに出る．', to: 'b_aruku' }
+        ]},
+
+      // ───── 進路1：見張る ─────
+      b_mihari: { intro: true, next: 'b_mihari2',
+        text: ['あなたは灯を最大に焚き，凍える窓辺に張りついた．光が霧を貫こうと足掻く．何度も，何度も．',
+               '夜半，咳が止まらなくなった．それでも目を離さなかった．妻なら，そうしただろうから．'],
+        cont: '夜明けを待つ' },
+      b_mihari2: {
+        text: ['夜明け，霧が裂けた瞬間，岩礁すれすれに漁船が見えた．あなたの灯を頼りに，舵を切っている．船は，帰り着いた．',
+               '漁師たちは灯台まで上ってきて，涙を流して礼を言った．春，本土から手紙が届く．娘の婚礼の報せだった．'],
+        prompt: 'あなたは妻の墓の前で迷う．',
+        choices: [
+          { text: '婚礼へ行く．娘は娘だ．灯台を数日空ける．', to: 'c_iku' },
+          { text: '残る．灯台を空けるわけにいかぬ．文だけ送る．', to: 'c_nokoru' }
+        ]},
+
+      // ───── 進路2：探しに出る ─────
+      b_aruku: { intro: true, next: 'b_aruku2',
+        text: ['あなたは灯を機械任せにし，提灯と縄を持って凍てつく岸を歩いた．波しぶきが顔を叩き，咳が止まらぬ．それでも歩いた．',
+               '岩場を，入り江を，幾度も声を張り上げながら．'],
+        cont: '夜明けを待つ' },
+      b_aruku2: {
+        text: ['夜明け，岩陰で気を失った若い漁師を一人見つけた．まだ息があった．あなたは縄で背負い，三時間かけて家まで運んだ．',
+               '他の者は，還らなかった．助かった青年は，以来あなたを父のように慕った．春，その青年が「一緒に本土で暮らさないか」と誘う．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '誘いを受け，本土へ移ることを考えはじめる．', to: 'c_iku' },
+          { text: '断る．ここがあなたの居場所だ．', to: 'c_nokoru' }
+        ]},
+
+      // ───── 第三幕 ─────
+      c_iku: { intro: true, next: 'yakunin',
+        text: ['人の世へ降りることを，あなたは少しずつ考えはじめた．海を離れる自分を，うまく想像できなかったが．',
+               '妻の墓に手を合わせる．「お前なら，どうする」と問うても，風が答えるばかりだった．'],
+        cont: '役人が訪れる' },
+      c_nokoru: { intro: true, next: 'yakunin',
+        text: ['あなたは断り，留まることを選んだ．石の家，回る灯，年に一度の咳．それがあなたの一生だと，疑わなかった．',
+               'だが時代は，あなたの意志を待ってはくれなかった．'],
+        cont: '役人が訪れる' },
+
+      yakunin: { intro: true, next: 'yakunin_choice',
+        text: ['秋，本土の役人が船で来て告げた．灯台は遠隔操作に切り替わる．人の手はもう要らぬ，職を辞すべし，と．',
+               '役人は気の毒そうに，しかし事務的に書類を差し出した．あなたが守ってきた光は，これからボタン一つで点くのだという．'],
+        cont: '役人と向き合う' },
+      yakunin_choice: {
+        text: ['あなたは長く黙った．窓の外で，灯が今夜も回りはじめている．',
+               'この灯と，どう別れるか．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '「ここに残らせてくれ」と頼む．職を失っても，家として．', to: 'pre_umi' },
+          { text: '頷いて去る．人の中で，残りを生きる．', to: 'pre_riku' },
+          { text: '最後に一度だけ，自分の手で灯を点して去る．', to: 'pre_wakare' }
+        ]},
+
+      pre_umi: { intro: true, next: 'end_umi',
+        text: ['役人は本土に掛け合い，あなたは石の家に住みつづけることを許された．灯台守ではなく，ただの老人として．',
+               '灯はもう自動で点る．けれどあなたは毎晩，窓辺でそれを見届けた．祈りのように．'],
+        cont: '歳月が過ぎる' },
+      pre_riku: { intro: true, next: 'end_riku',
+        text: ['あなたは荷物をまとめ，船に乗った．遠ざかる灯台が，小さくなっていく．不思議と，涙は出なかった．',
+               '本土の港町で，あなたは小さな部屋を借りた．人の声が，こんなに多い場所があるのかと思った．'],
+        cont: '歳月が過ぎる' },
+      pre_wakare: { intro: true, next: 'end_wakare',
+        text: ['最後の夜，あなたは機械を切り，自らの手で灯を点した．レンズを磨き，油を注ぎ，三十年やってきたその手順で，最後の光を海へ送った．',
+               '光は霧を裂き，水平線の彼方まで届いた．それが，あなたの別れの挨拶だった．'],
+        cont: '朝が来る' },
+
+      end_umi: { ending: true,
+        text: ['春，岩の陰に名も知らぬ小さな花が咲く．あなたはもう階段を上れぬが，窓からその花が見える．',
+               '灯は自動で回る．それでも朝は来る．波は寄せる．あなたは，まだここにいる．海と共に，妻の眠るこの岬で．'],
+        epitaph: '波に呼ばれ，波と共に在りつづけた者，ここに眠る．' },
+      end_riku: { ending: true,
+        text: ['本土の小さな町で，あなたは余生を過ごした．孫のような子らに囲まれ，請われるたびに海の話をした．',
+               '時折，眠れぬ夜がある．灯のない暗闇が，今も恋しい．けれど隣の部屋から，人の寝息が聞こえる．それも，悪くないものだと，思えるようになった．'],
+        epitaph: '土に踏みとどまり，人に応えた者，ここに眠る．' },
+      end_wakare: { ending: true,
+        text: ['あの夜以来，あなたがどこへ行ったかは，誰も知らぬ．本土にも，岬にも，姿はなかった．',
+               'ただ，あの最後の灯を見た船乗りが，今も語り継いでいる．「霧の夜，水平線で，一度だけ強く光ったものがあった」と．それが何だったか，誰も知らぬまま．'],
+        epitaph: '最後の灯を自らの手で点し，霧の中へ去った者，ここに眠る．' }
+    }
+  },
+
+  {
+    name: '草原の娘',
+    meta: 'a nomad girl, Mongolian steppe, 1958',
+    start: 'a',
+    nodes: {
+      a: { intro: true, next: 'a2',
+        text: ['草原の朝．羊が鳴く．六歳．祖母が乾酪を切り分け，あなたの小さな手に乗せる．「これは去年の夏の，あの川辺の風の味だよ」と祖母は言う．あなたは意味も分からず，それを口に含む．確かに，どこか風の味がした．'],
+        cont: '一日が始まる' },
+      a2: { intro: true, next: 'b_choice',
+        text: ['草原では，何もかもが空の下にあった．生まれることも，死ぬことも，乳を搾ることも，星を数えることも．祖母はそのすべてを，急がず，騒がず，こなしていく．',
+               'あなたは祖母の背を見て育った．いつか自分も，あの背になるのだと思っていた．'],
+        cont: '十二の秋' },
+      b_choice: {
+        text: ['十二の秋．兄が馬から落ちて骨を折った．折れた骨が肌を破り，血が止まらぬ．家族は遠くの夏営地におり，すぐには戻れない．',
+               'あなたは一人，獣医を兼ねた老人のいる隣の谷へ走らされた．日は傾きかけている．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '夜を徹して走り続ける．兄の命がかかっている．', to: 'a_hashiru' },
+          { text: '途中の村で一晩休む．無理は禁物だと教わっていた．', to: 'b_yasumu' }
+        ]},
+
+      // 進路A：走り続ける
+      a_hashiru: { intro: true, next: 'a_engumi',
+        text: ['あなたは星明かりだけを頼りに走った．何度も転び，膝を擦りむき，それでも止まらなかった．夜半，老人の天幕に転がり込んだ．老人はすぐに馬を駆った．兄の手当ては，間に合った．兄は，生きた．',
+               '祖母は何も言わず，ただあなたの擦りむいた膝に，薬草をすり込んでくれた．その手の温かさを，生涯忘れなかった．'],
+        cont: '年月が流れる' },
+      a_engumi: {
+        text: ['二十歳．街から来た若者が，あなたに結婚を申し込んだ．街には電気があり，病院があり，学校がある．',
+               '兄は「行ってこい．お前は俺の命の恩人だ．幸せになれ」と笑った．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '若者と街へ下る．新しい風に乗ってみたい．', to: 'machi' },
+          { text: '草原に残る．羊と，老いた祖母がいる．', to: 'nokoru' }
+        ]},
+      machi: { intro: true, next: 'machi_q',
+        text: ['街の暮らしは目まぐるしかった．水道があり，夜も明るく，知らぬ言葉が飛び交う．あなたは戸惑いながらも，少しずつ馴染んでいった．子を産み，育て，働いた．',
+               '時折，乾酪の味が恋しくなった．けれど街には，あの風の味はなかった．'],
+        cont: '娘が育つ' },
+      machi_q: {
+        text: ['四十．祖母の訃報が草原から届いた．間に合わなかった．その夜，自分の娘と並んで，街の薄い星空を見上げる．',
+               '娘は「お母さんの生まれた草原って，どんなところ」と問うた．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '「お前が行きたい場所へ行きなさい．風はどこにでも吹く」', to: 'pre_tabi' },
+          { text: '「いつか，お前を待つ草原に帰ってごらん」', to: 'pre_kan' }
+        ]},
+      nokoru: { intro: true, next: 'nokoru_q',
+        text: ['あなたは草原に残った．若者は去り際，少し寂しそうに笑った．祖母は年老い，あなたは祖母のしていたすべてを引き継いだ．乳を搾り，乾酪を作り，星を数える．急がず，騒がず．',
+               '自分の手が，少しずつ祖母の手に似てくるのが分かった．'],
+        cont: '娘が育つ' },
+      nokoru_q: {
+        text: ['四十．祖母が逝った．草原の小さな塚に埋め，あなたは自分の娘と並んで星を見た．',
+               '娘は「私は，ここにずっといてもいいの」と問うた．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '「お前が行きたい場所へ行きなさい．風はどこにでも吹く」', to: 'pre_tabi' },
+          { text: '「お前を待つ風がここにある．いつでも帰っておいで」', to: 'pre_kan' }
+        ]},
+
+      // 進路B：村で休む
+      b_yasumu: { intro: true, next: 'b_ikikata',
+        text: ['あなたは村で一晩休んだ．疲れ切った体には，それが賢明に思えた．けれど翌朝，谷へ着いたときには遅かった．兄は，夜のうちに息を引き取っていた．',
+               '誰もあなたを責めなかった．それが，かえって辛かった．祖母だけが「お前のせいではない」と幾度も言った．けれどあなたは，その夜の自分の判断を，生涯，問いつづけることになる．'],
+        cont: '喪が明ける' },
+      b_ikikata: {
+        text: ['あなたは変わった．二度と，間に合わぬ思いはしたくない．草原には医者がいない．病も怪我も，運と祈りに委ねるしかない．',
+               'その現実が，あなたの胸に棘のように刺さっていた．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '街へ出て医を学ぶ．草原に医を持ち帰りたい．', to: 'i_manabu' },
+          { text: '草原に根ざす．ここで，できることをする．', to: 'i_nezasu' }
+        ]},
+      i_manabu: { intro: true, next: 'manabu_q',
+        text: ['あなたは街へ出て，看護を学んだ．言葉も文字も一から覚えた．草原育ちの女が学ぶことを，誰もが珍しがった．何年もかかって，あなたは草原を巡る巡回の医療者になった．',
+               '兄を救えなかった手で，今は幾人もの命を繋いでいる．'],
+        cont: '娘が育つ' },
+      manabu_q: {
+        text: ['四十．あなたの娘もまた，母の背を見て育った．ある夜，娘は「私も，お母さんのように人を助けたい」と言った．',
+               'けれどそれは，草原を離れ，さらに遠くで学ぶことを意味した．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '「行きなさい．お前の手が，もっと多くの命を繋ぐ」', to: 'pre_tabi' },
+          { text: '「ここにも，お前を必要とする命がある」', to: 'pre_iyashi' }
+        ]},
+      i_nezasu: { intro: true, next: 'nezasu_q',
+        text: ['あなたは草原に根ざした．医者にはなれずとも，薬草を覚え，産婆を覚え，骨接ぎを覚えた．完璧ではない．それでも，間に合うことが増えた．兄のような死を，一つでも減らせるなら，と．',
+               '草原の人々は，あなたを頼るようになった．'],
+        cont: '娘が育つ' },
+      nezasu_q: {
+        text: ['四十．娘が「私も，お母さんのように」と言う．けれどあなたは知っている．自分の手当てには限界があることを．街にはもっと多くを学べる場所があることを．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '「街で学んでおいで．私にできなかったことを」', to: 'pre_tabi' },
+          { text: '「ここで，私と一緒に覚えていこう」', to: 'pre_iyashi' }
+        ]},
+
+      // 終幕前の幕間 ＋ エンディング
+      pre_tabi: { intro: true, next: 'end_tabi',
+        text: ['娘は草原を発った．遠い街で，あるいはもっと遠い国で，娘は娘の風に乗っていった．時折，便りが届く．知らぬ土地の，知らぬ匂いの便りが．',
+               'あなたはそれを，乾酪を齧りながら読む．'],
+        cont: '老いる' },
+      pre_kan: { intro: true, next: 'end_kan',
+        text: ['娘は一度，草原を離れた．街で暮らし，子を産み，働いた．けれどある年，娘は帰ってきた．孫の手を引いて．「やっぱり，ここの風が忘れられなくて」と笑って．',
+               'あなたは，何も言わずに乾酪を切り分けた．'],
+        cont: '老いる' },
+      pre_iyashi: { intro: true, next: 'end_iyashi',
+        text: ['娘はあなたの傍に残り，共に草原を巡った．二つの手は，やがて四つの手になり，より多くの命に届いた．',
+               '兄を救えなかったあの夜から，ずいぶん遠くまで来た．間に合うことが，こんなにも増えた．'],
+        cont: '老いる' },
+
+      end_tabi: { ending: true,
+        text: ['老いた．羊はもう少ない．歯もほとんど無い．それでも，乾酪を口に含めば味が分かる．あの夏の，あの川辺の，あの風の味．',
+               '娘は遠い．けれど風は，娘のいる場所にも，きっと同じように吹いている．'],
+        epitaph: '風と共に生き，子をその風に乗せて送り出した者，ここに眠る．' },
+      end_kan: { ending: true,
+        text: ['老いた．羊はもう少ない．歯もほとんど無い．それでも，乾酪を口に含めば味が分かる．孫が同じものを齧り，「風の味がする」と言う．',
+               'あなたは笑う．風は，巡る．人も，巡って，帰ってくる．'],
+        epitaph: '送り出し，そして迎え入れた者，ここに眠る．' },
+      end_iyashi: { ending: true,
+        text: ['老いた．手はもう震えるが，娘の手がそれを継いでいる．あの夜，村で眠った自分を，今はもう責めない．あの後悔があったから，幾人もが生きた．',
+               '兄よ，と空に呼びかける．お前の死は，無駄ではなかったよ，と．'],
+        epitaph: 'ひとつの悔いを，幾多の命に変えた者，ここに眠る．' }
+    }
+  },
+
+  {
+    name: '深海生物学者',
+    meta: 'a deep-sea biologist, the Pacific, 2014',
+    start: 'a',
+    nodes: {
+      a: { intro: true, next: 'a2',
+        text: ['太平洋の真上．船は揺れる．あなたは二十八歳．潜水艇の小さな窓を覗き込み，泡が一つずつ昇るのを数える．三千メートル下に，まだ名のない生き物がいる．それを確かめに，あなたは闇へ降りていく．'],
+        cont: '潜航する' },
+      a2: { intro: true, next: 'b_choice',
+        text: ['光は，深さ二百メートルで尽きる．そこから先は，人類の大半が一度も見ぬ世界だ．探照灯の円錐の中を，雪のような有機物が舞い落ちていく．「マリンスノー」と呼ばれる，上の世界の生き物たちの亡骸．死が，下の世界の糧になる．',
+               'あなたはこの静謐が，たまらなく好きだった．恩師に，この世界を教わったのだ．'],
+        cont: '何かが，光の中に' },
+      b_choice: {
+        text: ['探照灯の縁に，見たことのない軟体生物が漂っていた．透き通った体，ゆるやかな脈動．記録し，標本を採取する．新種だった．',
+               '発見者として，あなたにその学名を冠する権利が与えられた．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '自分の名をつける．これは私の業績だ．', to: 'a_jimei' },
+          { text: '亡き恩師の名をつける．代わりに，見つけたかった．', to: 'b_shimei' }
+        ]},
+
+      // 進路A：自分の名
+      a_jimei: { intro: true, next: 'a_kiro',
+        text: ['あなたの名を冠した生物は，学界に小さな波紋を呼んだ．論文は引用され，あなたの名は，深海学の片隅に刻まれた．野心は，悪いものではない．それが人を深く潜らせることもある．',
+               'あなたは次の発見を求めて，さらに潜った．'],
+        cont: '十年が過ぎる' },
+      a_kiro: {
+        text: ['四十歳．大学から研究費が削られた．潜水艇の維持には莫大な金がかかる．',
+               'あなたは岐路に立つ．海に出つづけるための算段をするか，陸に上がって安定した立場を築くか．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '机に戻る．論文を書き，学生を育て，業績を積む．', to: 'tsukue' },
+          { text: '海に残る．民間の資金を探してでも，潜りつづける．', to: 'umi' }
+        ]},
+      tsukue: { intro: true, next: 'tsukue_q',
+        text: ['あなたは教授になった．潜る回数は減ったが，あなたの教え子たちが海に潜るようになった．彼らの発見の中に，あなたの名は指導教員として刻まれていく．かつて自分が恩師にそうされたように．',
+               '業績は，静かに積み上がった．'],
+        cont: '退官の日' },
+      tsukue_q: {
+        text: ['六十歳，退官の日．あなたの研究室は，多くの研究者を輩出した．',
+               '記者が来て問うた．「先生にとって，最大の発見は何でしたか」'],
+        prompt: 'あなたは答える．',
+        choices: [
+          { text: '「私の名を冠した，あの軟体生物です」', to: 'pre_hou' },
+          { text: '「まだ会えていない，名もなき生き物です」', to: 'pre_tan' }
+        ]},
+      umi: { intro: true, next: 'umi_q',
+        text: ['あなたは民間の資金を掻き集め，海に出つづけた．スポンサーの意向に振り回され，派手な発見を求められることもあった．それでも，闇の底に降りる時間だけは，何にも代えがたかった．',
+               'あなたの名は，業界で「潜りつづける変人」として知られた．'],
+        cont: '老いてなお' },
+      umi_q: {
+        text: ['六十を越え，あなたはまだ潜っていた．',
+               '記者が来て問うた．「先生は，なぜそこまで潜るのですか．もう十分な名声があるでしょうに」'],
+        prompt: 'あなたは答える．',
+        choices: [
+          { text: '「名声のためだ．まだ，誰も見ぬものを最初に見たい」', to: 'pre_na' },
+          { text: '「名声などどうでもいい．まだ会えぬものがいる，それだけだ」', to: 'pre_tan' }
+        ]},
+
+      // 進路B：恩師の名
+      b_shimei: { intro: true, next: 'b_kiro',
+        text: ['あなたは新種に恩師の名を冠した．恩師は，深海に魅せられたまま，志半ばで逝った人だった．「お前が，私の見られなかったものを見てくれ」が口癖だった．',
+               '学名の中で，恩師は今も深海を漂っている．そう思うと，胸が温かくなった．'],
+        cont: '十年が過ぎる' },
+      b_kiro: {
+        text: ['四十歳．大学から研究費が削られた．恩師から受け継いだこの探究を，どう繋ぐか．',
+               '自ら海に出つづけるか，それとも次の世代に託す準備をするか．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '民間の資金を取りに行く．自分の手で，まだ潜る．', to: 'shikin' },
+          { text: '机で論文を残す．知を，後の世代に確実に渡す．', to: 'ronbun' }
+        ]},
+      shikin: { intro: true, next: 'shikin_q',
+        text: ['あなたは資金を掻き集め，海に出つづけた．恩師がそうしたかったように，あなたは闇の底を這いつづけた．幾つもの新種を見つけ，そのいくつかには，また別の，先に逝った仲間たちの名をつけた．',
+               '深海は，あなたにとって墓標の海でもあった．'],
+        cont: '弟子を得る' },
+      shikin_q: {
+        text: ['老いて，あなたにも弟子ができた．潜ることに憑かれた，かつての自分のような若者．',
+               'ある日，弟子が問うた．「先生，どうすれば，一番乗りで新種を見つけられますか」'],
+        prompt: 'あなたは答える．',
+        choices: [
+          { text: '「貪欲であれ．誰より先に，誰より深く潜れ」', to: 'pre_tan' },
+          { text: '「見つけることより，まだ見えぬものを敬うことだ」', to: 'pre_kei' }
+        ]},
+      ronbun: { intro: true, next: 'ronbun_q',
+        text: ['あなたは潜るのをやめ，知を伝えることに専念した．恩師が遺した観察記録を整理し，自らの発見と併せて大著にまとめた．それは，深海学を志す者の必読書になった．',
+               '恩師の名も，あなたの名も，その頁に並んで刻まれた．'],
+        cont: '弟子を得る' },
+      ronbun_q: {
+        text: ['老いて，あなたの著書を読んで育った弟子ができた．',
+               'ある日，弟子が問うた．「先生は，潜らなくて後悔していませんか」'],
+        prompt: 'あなたは答える．',
+        choices: [
+          { text: '「しない．私が遺した知が，お前を深く潜らせる」', to: 'pre_hou' },
+          { text: '「後悔はある．だが，見えぬものへの畏れは，本に書けた」', to: 'pre_kei' }
+        ]},
+
+      // 終幕前の幕間 ＋ エンディング
+      pre_hou: { intro: true, next: 'end_hou',
+        text: ['あなたの遺した業績は，教科書に，論文に，後進の記憶に刻まれた．名は残る．知は受け継がれる．',
+               '研究者として，それは確かな達成だった．'],
+        cont: '海辺を歩く' },
+      pre_na: { intro: true, next: 'end_na',
+        text: ['あなたは最期まで潜りつづけた．名声は得た．けれど不思議と，得るほどに渇いた．次の発見，また次の発見．',
+               '満たされることのない海が，あなたを呼びつづけた．'],
+        cont: '最後の潜航' },
+      pre_tan: { intro: true, next: 'end_tan',
+        text: ['あなたは生涯，「まだ会えぬもの」を探しつづけた．発見した数より，発見できなかったものの方が，あなたには大切だった．',
+               '海はあまりに広く，深く，一生では到底足りなかった．それが，嬉しかった．'],
+        cont: '海辺を歩く' },
+      pre_kei: { intro: true, next: 'end_kei',
+        text: ['あなたは，恩師から受け取ったものを，弟子に渡した．知だけではない．見えぬものへの畏れ，闇への敬意．それは論文には書ききれぬものだった．',
+               'けれど，確かに伝わった．弟子の目を見れば，分かった．'],
+        cont: '海辺を歩く' },
+
+      end_hou: { ending: true,
+        text: ['海岸．杖をつき，波打ち際を歩く．あなたの名を冠した生き物は，今も三千メートルの闇を漂っているはずだ．会いに行く体力は，もうない．',
+               'それでも，自分が確かに何かをこの世界に書き加えたのだと，思える．'],
+        epitaph: '闇の底のものを，人の世に届けつづけた者，ここに眠る．' },
+      end_na: { ending: true,
+        text: ['最後の潜航で，あなたは新種を一つ見つけた．記録する手が震えた．これで何種目か，もう数えていない．水面に浮上しながら，ふと思う．これほど見つけて，なぜまだ足りないのか．',
+               '——答えは出ぬまま，泡が一つずつ昇っていった．'],
+        epitaph: '一番乗りを求めつづけ，渇きと共に去った者，ここに眠る．' },
+      end_tan: { ending: true,
+        text: ['海岸．杖をつき，波打ち際を歩く．足元の砂に，小さな貝がひとつ．拾い上げる．こんな浅瀬の，ありふれた貝でさえ，まだ知らぬことがある．世界は，知り尽くせぬほど豊かだ．',
+               'あなたは微笑む．会えなかったものたちよ，どうか，誰かが会いに行くように．'],
+        epitaph: 'まだ会えぬ生き物の名を，最期まで探していた者，ここに眠る．' },
+      end_kei: { ending: true,
+        text: ['海岸．杖をつき，波打ち際を歩く．弟子が隣にいる．「先生，次はどこを潜りましょう」と問う．あなたはもう潜れぬ．',
+               'けれど，あなたの中の恩師が，弟子の中のあなたが，まだ潜りつづける．深海は，そうやって受け継がれていく．'],
+        epitaph: '受け取り，畏れと共に渡した者，ここに眠る．' }
+    }
+  },
+
+  {
+    name: '月の司書',
+    meta: 'the librarian of the moon, year unknown',
+    start: 'a',
+    nodes: {
+      a: { intro: true, next: 'a2',
+        text: ['月の裏側．光の届かぬ図書館で，あなたは目を覚ます．何百年前から，もしかしたら何千年前から，あなたはここの司書だ．書物のない棚．光のないランプ．それでも，「書」はある．触れれば，物語が指先に流れ込んでくる．'],
+        cont: '棚を見回る' },
+      a2: { intro: true, next: 'b_choice',
+        text: ['ここには，地上で語られたすべての物語と，語られなかったすべての物語が眠っている．書かれた本だけではない．誰かが胸の中だけで温め，ついに口にしなかった物語も，ここでは一冊の書として棚に収まる．',
+               'あなたの役目は，それらを守ること．ただ，守ること．'],
+        cont: '一冊の本が，月の風に乗って届く' },
+      b_choice: {
+        text: ['ある日，地上から一冊の本が届いた．持ち主は，少女のようだ．本は途中で終わっている．',
+               '送り状にこう書いてある．「この物語の続きが知りたいのです．お願いします」'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '書庫の奥から続きを探し出し，月の風に乗せて返す．', to: 'a_kaesu' },
+          { text: '何も返さない．続きは，少女自身が書くべきだ．', to: 'b_kaesazu' }
+        ]},
+
+      a_kaesu: { intro: true, next: 'shisho_q',
+        text: ['あなたは書庫の最奥から，その物語の「ありえたかもしれない続き」を探し出し，少女に送り返した．幾年か後，地上から新しい本が届いた．あの少女が，大人になって書いた物語だった．あなたの返した続きが，種になっていた．',
+               '物語は，巡る．与えれば，巡る．'],
+        cont: '長い時が流れる' },
+      b_kaesazu: { intro: true, next: 'shisho_q',
+        text: ['あなたは何も返さなかった．少女の落胆が，月まで届くようだった．けれど幾年か後，地上から一冊の本が届いた．あの少女が，自分で続きを書き上げたのだ．あなたが与えなかったからこそ，少女は自分の物語を見つけた．',
+               '与えぬことも，一つの贈り物なのかもしれない．'],
+        cont: '長い時が流れる' },
+
+      shisho_q: {
+        text: ['千年が過ぎた頃，あなたの隣に，もう一人の司書が立った．新しく目覚めた者だ．かつてのあなたのように，何も分からず，ただ立ち尽くしている．',
+               '「私は，何をすればよいのでしょう」と問うた．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '「書を一冊ずつ手に取り，声に出して読みなさい」', to: 'kataru' },
+          { text: '「黙って，ここに座っていなさい．いつか聞こえてくる」', to: 'damaru' }
+        ]},
+      kataru: { intro: true, next: 'houkai_kataru',
+        text: ['新人司書は，書を声に出して読みはじめた．光のない図書館に，初めて声が響いた．物語が，読まれることで再び生きはじめる．あなたも，いつしか共に読むようになった．',
+               '守るだけだった書が，語られるものになった．悪くない変化だ，と思った．'],
+        cont: '図書館が，軋みはじめる' },
+      damaru: { intro: true, next: 'houkai_damaru',
+        text: ['新人司書は，黙って座った．二人の沈黙が，図書館を満たした．やがて新人司書にも，書の声が聞こえるようになった．指先から流れ込む，声なき物語が．言葉にせずとも，物語はそこにある．',
+               '守ることは，聞くことだった．'],
+        cont: '図書館が，軋みはじめる' },
+
+      houkai_kataru: {
+        text: ['ある時，月の図書館が崩れはじめた．地上の世界が変わったのだ．人々はもう，胸の中の物語を月に預けなくなった．書物は地上に降ろされることになり，あなたの役目は，終わろうとしていた．',
+               '最後の一冊が，あなたの手に残された．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '最後の書を，地上に向けて投げる．誰かが拾うだろう．', to: 'pre_kataru' },
+          { text: '最後の書を腕に抱き，月と共に，静かに消える．', to: 'pre_sei' }
+        ]},
+      houkai_damaru: {
+        text: ['ある時，月の図書館が崩れはじめた．地上の世界が変わったのだ．人々はもう，胸の中の物語を月に預けなくなった．書物は地上に降ろされることになり，あなたの役目は，終わろうとしていた．',
+               '最後の一冊が，あなたの手に残された．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '最後の書を地上に投げ，新人司書に小さな灯を残す．', to: 'pre_tomoshibi' },
+          { text: '最後の書を腕に抱き，月と共に，静かに消える．', to: 'pre_sei' }
+        ]},
+
+      pre_kataru: { intro: true, next: 'end_kataru',
+        text: ['あなたが投げた書は，月の風に乗り，地上へ降りていった．長い尾を引いて，まるで流れ星のように．',
+               'それを見上げた誰かが，願いごとをしただろうか．書は，地上のどこかに，静かに降り立った．'],
+        cont: '時が満ちる' },
+      pre_tomoshibi: { intro: true, next: 'end_tomoshibi',
+        text: ['あなたは最後の書を地上に投げ，自らは消えゆく図書館に留まった．新人司書に，灯のように小さな何かを残して．「お前が，次の千年を守れ」と．',
+               '新人司書は頷き，沈黙の中に座りつづけた．'],
+        cont: '時が満ちる' },
+      pre_sei: { intro: true, next: 'end_sei',
+        text: ['あなたは最後の書を腕に抱いた．投げはしなかった．この一冊だけは，誰にも読まれぬまま，あなたと共にあればいい．そう思った．誰かが胸の中だけで温め，ついに語らなかった物語のように．',
+               '語られぬことの，美しさもある．'],
+        cont: '時が満ちる' },
+
+      end_kataru: { ending: true,
+        text: ['もう図書館はない．月の裏側に，あなたの姿もない．けれど時折，地上の誰かが本を開き，最初の頁の余白に，微かな月の香を感じる．そして，何かを書きたくなる．',
+               '物語は，そうやって地上に降り，巡りつづける．あなたが，そうしたように．'],
+        epitaph: '光なき棚に灯を点し，言葉を地上に届けた者，ここに眠る．' },
+      end_tomoshibi: { ending: true,
+        text: ['もう図書館はない．けれど月の裏側のどこかに，まだ沈黙の司書が座っている．あなたの残した小さな灯を，胸に抱いて．',
+               'いつか地上の誰かが，胸の中だけの物語を月に預けたくなったとき，その司書が，静かに受け取るだろう．あなたが，そうしたように．'],
+        epitaph: '沈黙の中に灯を残し，次なる者に託した者，ここに眠る．' },
+      end_sei: { ending: true,
+        text: ['図書館が，月が，あなたを包んで，静かに消えていく．腕の中の書は，最後まで誰にも読まれなかった．それでよかった．すべての物語が語られる必要はない．',
+               '沈黙のまま消えていく物語が，宇宙には満ちている．あなたは，その一つになった．'],
+        epitaph: '沈黙の中に書を抱き，月と共に消えた者，ここに眠る．' }
+    }
+  },
+
+  {
+    name: '足軽',
+    meta: 'a foot soldier, the warring states, 1564',
+    start: 'a',
+    nodes: {
+      a: { intro: true, next: 'a2',
+        text: ['雨の朝．陣笠の縁から水が滴る．二十二歳．故郷の山田を出てから三月．足軽として駆り出され，名も知らぬ土地の，名も知らぬ戦に向かっている．',
+               '懐には，母が持たせた焼き米が，雨に湿りはじめている．'],
+        cont: '陣触れの太鼓が鳴る' },
+      a2: { intro: true, next: 'b_choice',
+        text: ['太鼓が腹に響く．周りの足軽たちの顔は，泥と恐怖で同じに見えた．お前も，同じ顔をしているのだろう．今日，初めて人を殺すのだろう．あるいは，殺されるのだろう．',
+               '槍の柄を握る手が，汗で滑る．田を耕していた手だ．人を刺すための手では，なかったはずだ．'],
+        cont: '戦が，始まる' },
+      b_choice: {
+        text: ['乱戦の中，お前の前に，お前と同じくらい若い敵兵が転がってきた．泥にまみれ，槍を取り落とし，這って逃げようとしている．お前を見上げる目が，恐怖で見開かれている．',
+               'お前は槍を構えた．突けば，手柄になる．'],
+        prompt: 'お前は，',
+        choices: [
+          { text: '槍を突き入れる．これが，足軽の務めだ．', to: 'a_tsuku' },
+          { text: '槍を引く．——敵兵は這って逃げ，お前も走り去る．', to: 'b_hiku' }
+        ]},
+
+      // 進路A：突き入れる
+      a_tsuku: { intro: true, next: 'a_furi',
+        text: ['お前は槍を突き入れた．確かな手応え．若い敵兵は，声も上げずに動かなくなった．戦は三日続き，お前は生き残った．恩賞として，わずかな銭．',
+               '初めての殺しの感触は，夜ごと夢に出た．だが何度目かの戦で，それも薄れた．お前は，兵になっていく．'],
+        cont: '戦が終わる' },
+      a_furi: {
+        text: ['戦が一段落した．主君は次の戦を約束し，腕の立つ足軽は重宝された．お前は岐路に立つ．このまま武で身を立てるか，それとも，故郷の田に帰るか．',
+               '焼き米の味を，まだ覚えている．'],
+        prompt: 'お前は，',
+        choices: [
+          { text: '残る．武で身を立てる以外，もう道はない．', to: 'a_bu' },
+          { text: '田に帰る．戦が終わり次第，故郷へ逐電する．', to: 'a_kaeru' }
+        ]},
+      a_bu: { intro: true, next: 'a_bu_q',
+        text: ['お前は戦いつづけた．幾つもの戦場を渡り，幾人もの敵を屠った．腕は上がり，足軽頭にまでなった．田の記憶は遠くなり，焼き米の味も思い出せなくなった．',
+               '戦場の血の匂いだけが，お前の日常になった．故郷は，もうない．戦が，故郷だった．'],
+        cont: '老兵となる' },
+      a_bu_q: {
+        text: ['何年も後．お前は老いた足軽となり，足は重く，槍の柄は擦り切れている．',
+               'ある若い兵が，かつてのお前のような顔で問うた．「お頭，故郷はあるので」'],
+        prompt: 'お前は応える．',
+        choices: [
+          { text: '「ない．戦が，俺の故郷だ」', to: 'pre_bu' },
+          { text: '「……ある，気がする．まだ，覚えている」', to: 'pre_bou' }
+        ]},
+      a_kaeru: { intro: true, next: 'a_kaeru_q',
+        text: ['お前は戦が終わるや，夜陰に紛れて陣を抜けた．見つかれば斬られる．それでも，田に帰りたかった．何日も歩き，山を越え，ついに故郷の田が見えたとき，お前は膝をついて泣いた．',
+               '母は，まだ生きていた．焼き米を，また握ってくれた．'],
+        cont: '田を耕す' },
+      a_kaeru_q: {
+        text: ['歳月が流れ，お前はまた田を耕す日々に戻った．ある日，村を通りかかった若い足軽が，水を求めて立ち寄った．かつてのお前のような顔をしていた．',
+               '「おじさんは，戦に出たことがあるので」と問うた．'],
+        prompt: 'お前は応える．',
+        choices: [
+          { text: '「ない．俺はずっと，ここで田を耕してきた」（嘘をつく）', to: 'pre_kaeru' },
+          { text: '「ある．だから言う．生きて帰れ．故郷を，忘れるな」', to: 'pre_bou' }
+        ]},
+
+      // 進路B：槍を引く
+      b_hiku: { intro: true, next: 'b_furi',
+        text: ['お前は槍を引いた．若い敵兵は這って逃げ，お前も背を向けて走った．誰も見ていなかった．手柄は逃した．だが，あの見開かれた目を，殺さずに済んだ．',
+               'その夜，お前は妙に清々しく，そして妙に恐ろしかった．次も，引けるだろうか．引きつづけられるだろうか．'],
+        cont: '戦が終わる' },
+      b_furi: {
+        text: ['戦が一段落した．手柄を立てなかったお前への恩賞は，わずかだった．それでも，誰も殺していないという事実が，お前の中で奇妙な誇りになっていた．',
+               'この先，どう生きるか．'],
+        prompt: 'お前は，',
+        choices: [
+          { text: '残る．武で身を立てる．——だが，できる限り，殺さぬように．', to: 'b_bu' },
+          { text: '戦を捨てる．人を殺さぬ生き方を，どこかで探す．', to: 'b_suteru' }
+        ]},
+      b_bu: { intro: true, next: 'b_bu_q',
+        text: ['お前は足軽でありつづけたが，奇妙な兵だった．できる限り峰打ちで済ませ，逃げる敵は追わず，降る者は見逃した．臆病者と罵られもした．',
+               'それでも，殺さずに済んだ命の数を，お前は密かに数えていた．矛盾を抱えたまま，お前は戦場に立ちつづけた．'],
+        cont: '老兵となる' },
+      b_bu_q: {
+        text: ['何年も後．お前は老いた足軽となった．',
+               'ある若い兵が，初陣を前に震えながら問うた．「お頭，人を，殺さねばならぬのですか」'],
+        prompt: 'お前は応える．',
+        choices: [
+          { text: '「殺すのが，務めだ．迷えば，お前が死ぬ」', to: 'pre_bu' },
+          { text: '「槍は，守るために握れ．殺すためではなく」', to: 'pre_go' }
+        ]},
+      b_suteru: { intro: true, next: 'b_suteru_q',
+        text: ['お前は戦を捨て，野に下った．田を耕すには故郷は遠すぎたので，名も知らぬ村に流れ着き，荒れ地を拓いた．人を殺さぬ日々は，飢えと隣り合わせだったが，夜はよく眠れた．',
+               'あの見開かれた目を，もう夢に見ることはなかった．'],
+        cont: '村に根づく' },
+      b_suteru_q: {
+        text: ['歳月が流れ，お前の拓いた地は小さな田になった．ある日，落ち武者狩りを逃れた若い足軽が，傷を負って倒れていた．お前はそれを匿った．',
+               '回復した若者が問うた．「なぜ，敵かもしれぬ俺を助けたので」'],
+        prompt: 'お前は応える．',
+        choices: [
+          { text: '「お前を見ていると，昔の俺を思い出す．早く田に帰れ」', to: 'pre_kaeru' },
+          { text: '「槍は，守るために握るものだ．俺は，それを忘れたくない」', to: 'pre_go' }
+        ]},
+
+      // 終幕前の幕間 ＋ エンディング
+      pre_bu: { intro: true, next: 'end_bu',
+        text: ['お前は戦場で老いた．武こそが，お前の生きた証だった．幾多の戦を生き延び，幾多の命を奪った．',
+               'それを誇るでも悔いるでもなく，ただ，そういう一生だった．'],
+        cont: '最後の戦場' },
+      pre_bou: { intro: true, next: 'end_bou',
+        text: ['お前は故郷を忘れなかった．あるいは，忘れたふりをして，忘れられなかった．焼き米の味，田の匂い，母の手．',
+               '戦場のただ中でも，野良仕事の合間でも，それはお前の胸の底で，小さく灯りつづけた．'],
+        cont: '老いる' },
+      pre_kaeru: { intro: true, next: 'end_kaeru',
+        text: ['お前は，田に帰った．あるいは，新しい田を拓いた．人を殺める日々から，人を生かす日々へ．米は，人を殺さない．米は，人を生かす．',
+               'その当たり前のことが，戦場を知ったお前には，奇跡のように尊かった．'],
+        cont: '老いる' },
+      pre_go: { intro: true, next: 'end_go',
+        text: ['お前は，殺すための槍を，守るための槍に変えようとしつづけた．矛盾だらけの一生だった．完全には守りきれず，かといって割り切って殺すこともできず．',
+               'けれどお前は，その矛盾から目を逸らさなかった．'],
+        cont: '老いる' },
+
+      end_bu: { ending: true,
+        text: ['最後の戦場で，お前は槍を杖にして立っていた．もう振るう力はない．若い兵たちが駆けていく．お前は，その背を見送る．',
+               '雨が降ってきた．陣笠の縁から，水が滴る．——あの朝と，同じように．それだけが，懐かしかった．'],
+        epitaph: '戦場を故郷とし，槍と共に老いた者，ここに眠る．' },
+      end_bou: { ending: true,
+        text: ['老いて，お前は田の畔に座っている．——いや，これは戦場だったか，故郷だったか，記憶があいまいだ．けれど時折，雨の朝になると，陣笠から滴る水の音が，どこからか聞こえる気がする．',
+               'そして焼き米の味が，舌の奥に蘇る．それが，故郷だった．'],
+        epitaph: '田の匂いを忘れず，胸の灯を絶やさなかった者，ここに眠る．' },
+      end_kaeru: { ending: true,
+        text: ['老いて，お前は実った田を眺めている．孫が稲穂の間を走り回る．あの戦の朝，お前は人を刺すための手をしていた．今この手は，米を育てる手だ．',
+               '同じ手で，こうも違うものが作れる．それが，お前の見つけた答えだった．'],
+        epitaph: '田に帰り，殺める手で生かすことを選んだ者，ここに眠る．' },
+      end_go: { ending: true,
+        text: ['老いて，お前は若者に槍の構えを教えている．「これは，誰かを守るための形だ」と．若者は怪訝な顔をする．槍は人を刺すものだろう，と．「そうだ．だが，どう握るかは，お前が決める」とお前は言う．',
+               'あの雨の朝，槍を引いた手が，今も覚えている．守る，ということを．'],
+        epitaph: '殺める得物を，守るために握りつづけた者，ここに眠る．' }
+    }
+  },
+
+  {
+    name: '看護師',
+    meta: 'a hospice nurse, 2020',
+    start: 'a',
+    nodes: {
+      a: { intro: true, next: 'a2',
+        text: ['廊下の蛍光灯．午前三時．あなたは三十二歳．緩和ケア病棟の夜勤．新人の頃から数えて，もう何人を見送ったか，正確には覚えていない．覚えていられるほど，少なくはなかった．',
+               '今夜も一人，呼吸が浅くなっている．'],
+        cont: '病室へ向かう' },
+      a2: { intro: true, next: 'b_choice',
+        text: ['この仕事は，治すことではない．送ることだ．最期の時間を，少しでも穏やかに．痛みを和らげ，傍にいて，手を握る．医学校では教わらなかったことばかりだ．',
+               'けれど，これが一番難しく，一番大切なことだと，あなたは知っている．病室の引き戸に手をかける．'],
+        cont: '患者のもとへ' },
+      b_choice: {
+        text: ['その患者は，もう家族とは話さないと言っていた．長く折り合いの悪かった息子とは，特に．けれど今夜，呼吸の様子からして，朝までもたないかもしれない．',
+               '息子は，廊下のベンチで眠っている．毎晩，来ているのだ．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '息子を起こして呼ぶ．後悔させたくない．', to: 'a_yobu' },
+          { text: '患者の意思を尊重する．呼ばない．', to: 'b_sonchou' }
+        ]},
+
+      a_yobu: { intro: true, next: 'kouhai_q',
+        text: ['あなたは息子を起こした．迷ったが，呼んだ．息子は病室に入り，最初はぎこちなく立っていた．けれど，やせ細った母の手を見て，崩れるように膝をついた．「母さん」と，子どものような声で呼んだ．患者は，薄く目を開けた．言葉はなかった．けれど，二人の手は，確かに重なった．',
+               '夜明け前，患者は静かに息を引き取った．息子は，泣きながらあなたに礼を言った．'],
+        cont: '月日が流れる' },
+      b_sonchou: { intro: true, next: 'kouhai_q',
+        text: ['あなたは息子を呼ばなかった．患者の意思だった．それを守ることも，あなたの仕事だと信じた．夜明け前，患者は誰にも看取られず，けれど穏やかな顔で逝った．朝，目を覚ました息子は，間に合わなかったことを知り，立ち尽くした．何も言わなかった．あなたも，何も言えなかった．',
+               'あの選択は，正しかったのか．答えは，今も出ない．'],
+        cont: '月日が流れる' },
+
+      kouhai_q: {
+        text: ['数ヶ月後．若い同僚が，控え室で泣いていた．初めて受け持った患者を看取った夜だった．「もう，続けられないかもしれません」と，肩を震わせている．',
+               'かつてのあなたも，同じ夜を過ごした．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '「私も毎日，そう思っています」と隣に座る．', to: 'suwaru' },
+          { text: '「無理に続けなくて，いいんですよ」と退き際を示す．', to: 'shirizoku' }
+        ]},
+      suwaru: { intro: true, next: 'yamai_suwaru',
+        text: ['あなたは後輩の隣に座り，何も解決しないまま，ただ一緒にいた．「慣れることはない．慣れてはいけない」とだけ言った．後輩は，続けることを選んだ．',
+               'あなたは，誰かの隣に在りつづけることを，自分の生き方に決めた．患者にも，同僚にも，ただ，傍にいる．'],
+        cont: '歳月が流れる' },
+      shirizoku: { intro: true, next: 'yamai_shirizoku',
+        text: ['あなたは，後輩に退く道があることを示した．無理に背負わせることが，正しいとは限らない．後輩は，悩んだ末に，別の道へ進んだ．あなたはそれを，見送った．',
+               '人には，引くべき時がある．背負える荷の重さは，人それぞれだ．それを見極めることも，年長者の役目だと思った．'],
+        cont: '歳月が流れる' },
+
+      // 「座る」進路：働き続ける(添) / 退く(受)
+      yamai_suwaru: {
+        text: ['五十を越え，あなた自身が病を得た．重いものだった．まだ働ける，と医師は言う．けれど，無理は禁物だとも．',
+               'かつて，幾人もの患者に「無理をしないで」と言ってきた言葉が，今，自分に返ってくる．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '働き続ける．まだ，私を呼んでくれる人がいる．', to: 'pre_sou' },
+          { text: '退く．今度は，私が見送られる側だ．', to: 'pre_ju' }
+        ]},
+      // 「退き」進路：働き続ける(添) / 退く(退)
+      yamai_shirizoku: {
+        text: ['五十を越え，あなた自身が病を得た．重いものだった．まだ働ける，と医師は言う．けれど，無理は禁物だとも．',
+               'かつて，後輩に「無理をしないで」と言った言葉が，今，自分に返ってくる．'],
+        prompt: 'あなたは，',
+        choices: [
+          { text: '働き続ける．まだ，私を呼んでくれる人がいる．', to: 'pre_sou' },
+          { text: '退く．自分の説いた通り，穏やかに手放す．', to: 'pre_juku' }
+        ]},
+
+      pre_sou: { intro: true, next: 'end_sou',
+        text: ['あなたは働きつづけた．病を抱えながら，それでも病室に通った．自分が患者になる日が近いと知りながら，最期まで，誰かの傍に在った．',
+               '握ってきた手の数だけ，あなたの手も，温かくなっていた．'],
+        cont: '七十歳の春' },
+      pre_ju: { intro: true, next: 'end_ju',
+        text: ['あなたは病棟を退いた．かつて，あなたはいつも見送る側だった．手を握り，言葉をかけ，送り出す側．けれど今，立場が変わる．',
+               '見送られる側になって，初めて分かることがあった．握られる手の，温かさ．傍にいてくれる人の，ありがたさ．あなたは，それを噛みしめた．'],
+        cont: 'その時を迎える' },
+      pre_juku: { intro: true, next: 'end_juku',
+        text: ['あなたは退いた．長く働いた病棟に背を向けるのは，寂しかった．けれど，退き際を知ることもまた，あなたが患者たちから学んだことだった．',
+               '穏やかに手放すこと．しがみつかないこと．あなたは，それを自分の人生で実践した．'],
+        cont: '余生を過ごす' },
+
+      end_sou: { ending: true,
+        text: ['七十歳の春．今度は，あなたが病室の窓辺にいる．桜が見える．あなたの手を握っているのは，かつての同僚の，そのまた後輩．「先輩，桜，咲きましたよ」と言う．あなたは，少し笑う．',
+               'ずっと，誰かの手を握ってきた．最期に，握り返してもらえる手があった．それで，十分だった．'],
+        epitaph: '人の最期に寄り添いつづけ，桜の下で見送られた者，ここに眠る．' },
+      end_juku: { ending: true,
+        text: ['あなたは静かな余生を過ごした．庭の手入れをし，本を読み，季節の移ろいを眺めた．かつて看取った人々の顔を，時折思い出す．',
+               '自分の番が来たとき，あなたは慌てなかった．退き際を知っていたから．穏やかに，あなたは目を閉じた．かつての患者たちが，そうしたように．'],
+        epitaph: '退き際を知り，自らの番を静かに迎えた者，ここに眠る．' },
+      end_ju:  { ending: true,
+        text: ['病室の窓辺．あなたはもう，看護師ではない．一人の患者だ．かつての後輩が，あなたの手を握っている．「先輩，痛みはないですか」と問う．あなたは頷く．',
+               '長いあいだ，与えるばかりだと思っていた．けれど今，受け取っている．与えることと受け取ることは，同じことだったのだと，今わかる．'],
+        epitaph: '与える側から受け取る側へ，円を閉じた者，ここに眠る．' }
+    }
+  }
+];
+
+// ============================================================
+// 状態と進行
+// ============================================================
+let state = {
+  currentLife: null,
+  nodeId: null,
+  step: 0,        // 選択を何回終えたか（進捗表示用）
+  totalSteps: 0,  // この人生の選択回数の見込み
+  history: [],
+  livedCount: 0,
+  lastLifeIdx: -1
+};
+
+const app = document.getElementById('app');
+
+function pickLife() {
+  let idx;
+  if (LIVES.length === 1) idx = 0;
+  else {
+    do { idx = Math.floor(Math.random() * LIVES.length); }
+    while (idx === state.lastLifeIdx);
+  }
+  state.lastLifeIdx = idx;
+  state.currentLife = LIVES[idx];
+  state.history = [];
+  state.step = 0;
+  state.nodeId = state.currentLife.start;
+  state.totalSteps = estimateDepth(state.currentLife);
+}
+
+// 最短経路上の「選択ノード」の数を進捗分母にする
+function estimateDepth(life) {
+  let count = 0, id = life.start, guard = 0;
+  while (id && guard++ < 40) {
+    const node = life.nodes[id];
+    if (node.ending) break;
+    if (node.choices) count++;          // 選択を要するノードだけ数える
+    id = node.choices ? node.choices[0].to : node.next;
+  }
+  return Math.max(count, 1);
+}
+
+// ============================================================
+// レンダリング
+// ============================================================
+function renderTitle() {
+  app.innerHTML = `
+    <div class="title-screen">
+      <div>
+        <div class="title-mark">人生拝借</div>
+        <div class="title-sub" style="margin-top:1.8rem">a life borrowed for five minutes</div>
+      </div>
+      <div class="title-desc">
+        八つの人生のうち，ひとつが，あなたに貸し出されます．<br>
+        幾度かの選択が，物語を分かち，墓碑銘をひとつ残す．
+      </div>
+      <button class="btn-primary" onclick="startLife()">は じ め る</button>
+      <div class="title-footer">— please choose nothing in haste —</div>
+    </div>
+  `;
+}
+
+function renderLoading(messages) {
+  let i = 0;
+  app.innerHTML = `<div class="loading"><div class="loading-text" id="loadtxt">${messages[0]}</div></div>`;
+  const txt = document.getElementById('loadtxt');
+  const interval = setInterval(() => {
+    i++;
+    if (i >= messages.length) { clearInterval(interval); return; }
+    txt.style.opacity = '0';
+    setTimeout(() => {
+      txt.textContent = messages[i];
+      txt.style.opacity = '';
+    }, 400);
+  }, 1400);
+}
+
+function startLife() {
+  pickLife();
+  renderLoading([
+    '人生が，ひとつ，選ばれる ………',
+    '風が，少しだけ，吹いてくる ………',
+    '幕が，上がる ………'
+  ]);
+  setTimeout(renderCurrentScene, 4600);
+}
+
+function renderCurrentScene() {
+  renderNode();
+}
+
+// ---------- ノードベース ----------
+function renderNode() {
+  const life = state.currentLife;
+  const node = life.nodes[state.nodeId];
+  const isFirst = state.nodeId === life.start;
+
+  if (node.ending) { renderEndingNode(node); return; }
+
+  const header = isFirst ? `
+    <div class="life-header">
+      <div class="life-name">${life.name}</div>
+      <div class="life-meta">${life.meta}</div>
+    </div>` : '';
+
+  if (isFirst) state.step = 0;
+  if (node.choices) state.step++;
+  const shown = node.choices ? state.step : Math.min(state.step + 1, state.totalSteps);
+  const progress = `<div class="scene-progress">${Math.min(shown, state.totalSteps)} / ${state.totalSteps}</div>`;
+
+  let choicesHtml;
+  if (!node.choices && node.next) {
+    // 読み物シーン（intro / interlude）：選択肢なし
+    choicesHtml = `<button class="choice" onclick="advanceNode('${node.next}')">${node.cont || '続ける'}</button>`;
+  } else {
+    choicesHtml = node.choices.map((c, i) =>
+      `<button class="choice" onclick="chooseNode(${i})">${c.text}</button>`
+    ).join('');
+  }
+
+  const promptHtml = node.prompt ? `<div class="choice-prompt">${node.prompt}</div>` : '';
+
+  app.innerHTML = `${progress}<div class="scene">${header}
+    <div class="prose">${node.text.map(t => `<p>${t}</p>`).join('')}</div>
+    ${promptHtml}
+    <div class="choices">${choicesHtml}</div>
+  </div>`;
+}
+
+function chooseNode(idx) {
+  const node = state.currentLife.nodes[state.nodeId];
+  const choice = node.choices[idx];
+  state.history.push({ node: state.nodeId, choice: idx });
+  state.nodeId = choice.to;
+  renderNode();
+}
+
+function advanceNode(nextId) {
+  state.nodeId = nextId;
+  renderNode();
+}
+
+function renderEndingNode(node) {
+  state.livedCount++;
+  const life = state.currentLife;
+  app.innerHTML = `
+    <div class="scene ending">
+      <div class="life-header">
+        <div class="life-name">${life.name}</div>
+        <div class="life-meta">${life.meta}</div>
+      </div>
+      <div class="prose">${node.text.map(t => `<p>${t}</p>`).join('')}</div>
+      <div class="epitaph">
+        <div class="epitaph-label">EPITAPH</div>
+        <div class="epitaph-text">${node.epitaph}</div>
+        <div class="seal">拝借</div>
+      </div>
+      <div class="actions">
+        <button class="btn-primary" onclick="startLife()">別 の 人 生 を</button>
+        <button class="btn-subtle" onclick="renderTitle()">表 紙 へ</button>
+      </div>
+      <div class="tally">— this session: ${state.livedCount} ${state.livedCount === 1 ? 'life' : 'lives'} borrowed —</div>
+    </div>
+  `;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+// 起動
+renderTitle();
+</script>
+</body>
+</html>
