@@ -1,5 +1,7 @@
 # 人生拝借 — a life borrowed
 
+[![人生拝借 — a life borrowed](image/thumbnail.png)](https://uzuchan.github.io/JinseiHaishaku.github.io/)
+
 **https://uzuchan.github.io/JinseiHaishaku.github.io/**
 
 八つの人生のうち，ひとつが，あなたに貸し出されます。  
